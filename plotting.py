@@ -5,8 +5,8 @@ from pathlib import Path
 from typing import Any
 
 import matplotlib
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+matplotlib.use("Agg")
 
 
 def save_history_csv(history: list[dict[str, float | int]], output_path: str | Path) -> str:

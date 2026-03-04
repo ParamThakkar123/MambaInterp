@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
+from sklearn.metrics import f1_score
 
 
 def move_to_device(inputs: Any, device: torch.device) -> Any:
@@ -37,12 +38,7 @@ class EpochMetrics:
 def _compute_macro_f1(targets: list[int], preds: list[int]) -> float:
     if not targets:
         return 0.0
-    try:
-        from sklearn.metrics import f1_score
-    except ImportError:
-        return 0.0
     return float(f1_score(targets, preds, average="macro", zero_division=0))
-
 
 def train_one_epoch(
     model: nn.Module,

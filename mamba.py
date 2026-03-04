@@ -20,7 +20,7 @@ class RMSNorm(nn.Module):
 
 
 class MambaBlock(nn.Module):
-    """Minimal Mamba block for classification-focused prototypes."""
+    """Mamba block"""
 
     def __init__(
         self,
