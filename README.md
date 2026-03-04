@@ -32,7 +32,7 @@ ESC-50-master/
 Run a small validation experiment:
 
 ```bash
-python -m mambainterp.run_small_experiments ^
+python -m MambaInterp.run_small_experiments ^
   --data-root "E:\path\to\ESC-50-master" ^
   --output-dir "runs\small"
 ```
@@ -40,7 +40,7 @@ python -m mambainterp.run_small_experiments ^
 To explicitly set models (spectrogram only):
 
 ```bash
-python -m mambainterp.run_small_experiments ^
+python -m MambaInterp.run_small_experiments ^
   --data-root "E:\path\to\ESC-50-master" ^
   --models mamba_spectrogram ^
   --output-dir "runs\small"
@@ -49,9 +49,16 @@ python -m mambainterp.run_small_experiments ^
 ## 4) Single training run
 
 ```bash
-python -m mambainterp.train ^
+python -m MambaInterp.train ^
   --data-root "E:\path\to\ESC-50-master" ^
   --model mamba_spectrogram ^
+  --hop-length 512 ^
+  --d-model 256 ^
+  --n-layers 6 ^
+  --spectrogram-patch-freq 16 ^
+  --spectrogram-patch-time 16 ^
+  --spectrogram-stride-freq 16 ^
+  --spectrogram-stride-time 16 ^
   --val-fold 1 ^
   --epochs 20 ^
   --batch-size 16
