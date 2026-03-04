@@ -24,11 +24,7 @@ class ESC50AudioConfig:
 def resolve_esc50_paths(data_root: str | Path) -> tuple[Path, Path]:
     root = Path(data_root)
     candidates = [
-        root / "meta" / "esc50.csv",
         root / "esc50.csv",
-        root / "ESC-50-master" / "meta" / "esc50.csv",
-        root / "ESC-50-master" / "esc50.csv",
-        root / "ESC-50" / "meta" / "esc50.csv",
         root / "ESC-50" / "esc50.csv",
     ]
 
