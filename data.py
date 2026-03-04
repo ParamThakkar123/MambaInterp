@@ -23,39 +23,26 @@ class ESC50AudioConfig:
 
 def resolve_esc50_paths(data_root: str | Path) -> tuple[Path, Path]:
     root = Path(data_root)
-    candidates = [
+    csv_candidates = [
         root / "esc50.csv",
-        root / "ESC-50" / "esc50.csv",
+        root / "esc-50.csv",
+        root / "ESC-50.csv",
     ]
-
-    csv_path = next((p for p in candidates if p.exists()), None)
+    csv_path = next((p for p in csv_candidates if p.is_file()), None)
     if csv_path is None:
-        found = list(root.rglob("esc50.csv"))
-        if not found:
-            raise FileNotFoundError(
-                f"Could not find esc50.csv under {root}. "
-                "Expected .../meta/esc50.csv in the extracted ESC-50 folder."
-            )
-        csv_path = found[0]
+        expected_csv = ", ".join(p.name for p in csv_candidates)
+        raise FileNotFoundError(
+            f"Could not find metadata CSV in {root}. "
+            f"Expected one of: {expected_csv}."
+        )
 
-    audio_candidates = [
-        csv_path.parent / "audio",
-        csv_path.parent.parent / "audio",
-        root / "audio",
-    ]
-    for audio_dir in audio_candidates:
-        if audio_dir.exists():
-            return csv_path, audio_dir
-
-    # Fallback: search recursively for an "audio" directory under the provided root.
-    found_audio_dirs = [p for p in root.rglob("audio") if p.is_dir()]
-    if found_audio_dirs:
-        return csv_path, found_audio_dirs[0]
-
-    raise FileNotFoundError(
-        f"Could not find audio directory for {csv_path}. "
-        "Expected an 'audio' folder near esc50.csv."
-    )
+    audio_dir = root / "audio"
+    if not audio_dir.is_dir():
+        raise FileNotFoundError(
+            f"Could not find audio directory at {audio_dir}. "
+            f"Expected dataset layout: {root}/audio and {root}/{csv_path.name}."
+        )
+    return csv_path, audio_dir
 
 
 class ESC50Dataset(Dataset):

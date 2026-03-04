@@ -3,10 +3,7 @@
 Train and compare Mamba-style audio classifiers on ESC-50 with a shared evaluation script.
 
 This repo implements:
-- `mamba_waveform`: Mamba encoder on raw waveform patches.
 - `mamba_spectrogram`: Mamba encoder on log-mel spectrogram patches.
-- `mamba_hybrid`: Late-fusion waveform + spectrogram Mamba.
-- `cnn_waveform` and `cnn_spectrogram`: standard CNN baselines.
 
 ## 1) Install
 
@@ -22,18 +19,17 @@ Download and extract the Kaggle dataset:
 
 - https://www.kaggle.com/datasets/mmoreaux/environmental-sound-classification-50
 
-Expected structure (any parent directory works as long as `meta/esc50.csv` and `audio/` are inside):
+Expected structure (`--data-root` points to this folder):
 
 ```text
 ESC-50-master/
   audio/
-  meta/
-    esc50.csv
+  esc50.csv
 ```
 
 ## 3) Small validation runs
 
-Run all small experiments (same fold, same evaluation logic):
+Run a small validation experiment:
 
 ```bash
 python -m mambainterp.run_small_experiments ^
@@ -41,15 +37,7 @@ python -m mambainterp.run_small_experiments ^
   --output-dir "runs\small"
 ```
 
-This runs:
-- `cnn_waveform`
-- `cnn_spectrogram`
-- `mamba_waveform`
-- `mamba_spectrogram`
-
-Use `--include-hybrid` to also run `mamba_hybrid`.
-
-To run only one model (example: spectrogram Mamba):
+To explicitly set models (spectrogram only):
 
 ```bash
 python -m mambainterp.run_small_experiments ^
@@ -63,7 +51,7 @@ python -m mambainterp.run_small_experiments ^
 ```bash
 python -m mambainterp.train ^
   --data-root "E:\path\to\ESC-50-master" ^
-  --model mamba_waveform ^
+  --model mamba_spectrogram ^
   --val-fold 1 ^
   --epochs 20 ^
   --batch-size 16
@@ -72,7 +60,7 @@ python -m mambainterp.train ^
 ## Notes
 
 - The Mamba block follows the core paper structure: input projection, depthwise convolution, selective state-space scan, gated output, residual path.
-- This code is designed for fast prototype comparisons (small runs first, then scaling model size/compute).
+- This code is designed for fast prototype runs (small runs first, then scaling model size/compute).
 - Each training run saves:
   - `history.json` and `history.csv`
   - `training_curves.png` (loss/accuracy/F1/LR vs epoch)
