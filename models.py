@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import torch
 import torch.nn as nn
 
-from .mamba import MambaEncoder
+from .mamba import BiMambaEncoder
 
 MODEL_NAMES = ["mamba_spectrogram"]
 
@@ -15,7 +15,7 @@ class SpectrogramPatchEmbed(nn.Module):
         self,
         d_model: int,
         patch_size: tuple[int, int] = (16, 16),
-        patch_stride: tuple[int, int] = (8, 8),
+        patch_stride: tuple[int, int] = (16, 16),
     ) -> None:
         super().__init__()
         self.proj = nn.Conv2d(
@@ -23,7 +23,7 @@ class SpectrogramPatchEmbed(nn.Module):
             out_channels=d_model,
             kernel_size=patch_size,
             stride=patch_stride,
-            padding=(patch_size[0] // 2, patch_size[1] // 2),
+            padding=0,
         )
         self.norm = nn.LayerNorm(d_model)
 
@@ -39,20 +39,20 @@ class MambaSpectrogramClassifier(nn.Module):
     def __init__(
         self,
         num_classes: int,
-        d_model: int = 128,
+        d_model: int = 256,
         n_layers: int = 6,
         d_state: int = 16,
         d_conv: int = 4,
         expand: int = 2,
-        dropout: float = 0.1,
+        dropout: float = 0.0,
         patch_size: tuple[int, int] = (16, 16),
-        patch_stride: tuple[int, int] = (8, 8),
+        patch_stride: tuple[int, int] = (16, 16),
     ) -> None:
         super().__init__()
         self.embed = SpectrogramPatchEmbed(
             d_model=d_model, patch_size=patch_size, patch_stride=patch_stride
         )
-        self.encoder = MambaEncoder(
+        self.encoder = BiMambaEncoder(
             d_model=d_model,
             n_layers=n_layers,
             d_state=d_state,
@@ -60,12 +60,7 @@ class MambaSpectrogramClassifier(nn.Module):
             expand=expand,
             dropout=dropout,
         )
-        self.head = nn.Sequential(
-            nn.Linear(d_model, d_model),
-            nn.GELU(),
-            nn.Dropout(dropout),
-            nn.Linear(d_model, num_classes),
-        )
+        self.head = nn.Linear(d_model, num_classes)
 
     def forward(self, inputs: torch.Tensor | dict[str, torch.Tensor]) -> torch.Tensor:
         spectrogram = inputs["spectrogram"] if isinstance(inputs, dict) else inputs
@@ -79,16 +74,16 @@ class MambaSpectrogramClassifier(nn.Module):
 class ModelConfig:
     model_name: str
     num_classes: int
-    d_model: int = 128
+    d_model: int = 256
     n_layers: int = 6
     d_state: int = 16
     d_conv: int = 4
     expand: int = 2
-    dropout: float = 0.1
+    dropout: float = 0.0
     spectrogram_patch_freq: int = 16
     spectrogram_patch_time: int = 16
-    spectrogram_stride_freq: int = 8
-    spectrogram_stride_time: int = 8
+    spectrogram_stride_freq: int = 16
+    spectrogram_stride_time: int = 16
 
 
 def build_model(config: ModelConfig) -> nn.Module:

@@ -34,19 +34,19 @@ class TrainConfig:
     sample_rate: int = 16000
     clip_duration_s: float = 5.0
     n_fft: int = 1024
-    hop_length: int = 320
+    hop_length: int = 512
     n_mels: int = 128
     # Model config
-    d_model: int = 128
+    d_model: int = 256
     n_layers: int = 6
     d_state: int = 16
     d_conv: int = 4
     expand: int = 2
-    dropout: float = 0.1
+    dropout: float = 0.0
     spectrogram_patch_freq: int = 16
     spectrogram_patch_time: int = 16
-    spectrogram_stride_freq: int = 8
-    spectrogram_stride_time: int = 8
+    spectrogram_stride_freq: int = 16
+    spectrogram_stride_time: int = 16
 
 
 def _normalize_device(device_arg: str) -> torch.device:
@@ -257,18 +257,18 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--sample-rate", default=16000, type=int)
     parser.add_argument("--clip-duration-s", default=5.0, type=float)
     parser.add_argument("--n-fft", default=1024, type=int)
-    parser.add_argument("--hop-length", default=320, type=int)
+    parser.add_argument("--hop-length", default=512, type=int)
     parser.add_argument("--n-mels", default=128, type=int)
-    parser.add_argument("--d-model", default=128, type=int)
+    parser.add_argument("--d-model", default=256, type=int)
     parser.add_argument("--n-layers", default=6, type=int)
     parser.add_argument("--d-state", default=16, type=int)
     parser.add_argument("--d-conv", default=4, type=int)
     parser.add_argument("--expand", default=2, type=int)
-    parser.add_argument("--dropout", default=0.1, type=float)
+    parser.add_argument("--dropout", default=0.0, type=float)
     parser.add_argument("--spectrogram-patch-freq", default=16, type=int)
     parser.add_argument("--spectrogram-patch-time", default=16, type=int)
-    parser.add_argument("--spectrogram-stride-freq", default=8, type=int)
-    parser.add_argument("--spectrogram-stride-time", default=8, type=int)
+    parser.add_argument("--spectrogram-stride-freq", default=16, type=int)
+    parser.add_argument("--spectrogram-stride-time", default=16, type=int)
     return parser
 
 

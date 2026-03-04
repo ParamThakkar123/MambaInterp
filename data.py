@@ -15,7 +15,7 @@ class ESC50AudioConfig:
     sample_rate: int = 16000
     clip_duration_s: float = 5.0
     n_fft: int = 1024
-    hop_length: int = 320
+    hop_length: int = 512
     n_mels: int = 128
     f_min: float = 0.0
     f_max: float | None = 8000.0
