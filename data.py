@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset
 import torchaudio
 
+
 @dataclass
 class ESC50AudioConfig:
     sample_rate: int = 16000
@@ -32,8 +33,7 @@ def resolve_esc50_paths(data_root: str | Path) -> tuple[Path, Path]:
     if csv_path is None:
         expected_csv = ", ".join(p.name for p in csv_candidates)
         raise FileNotFoundError(
-            f"Could not find metadata CSV in {root}. "
-            f"Expected one of: {expected_csv}."
+            f"Could not find metadata CSV in {root}. Expected one of: {expected_csv}."
         )
 
     audio_dir = root / "audio"
@@ -54,6 +54,7 @@ class ESC50Dataset(Dataset):
         folds: Sequence[int],
         audio_config: ESC50AudioConfig | None = None,
         random_crop: bool = False,
+        spec_augment: bool = False,
     ) -> None:
         if torchaudio is None:
             raise ImportError(
@@ -63,6 +64,7 @@ class ESC50Dataset(Dataset):
         self.csv_path, self.audio_dir = resolve_esc50_paths(data_root)
         self.audio_config = audio_config or ESC50AudioConfig()
         self.random_crop = random_crop
+        self.spec_augment = spec_augment
         self.target_num_samples = int(
             self.audio_config.sample_rate * self.audio_config.clip_duration_s
         )
@@ -124,6 +126,25 @@ class ESC50Dataset(Dataset):
         mel = (mel - mel.mean()) / mel.std().clamp_min(1e-6)
         return mel
 
+    def _apply_spec_augment(self, spec: torch.Tensor) -> torch.Tensor:
+        freq_mask = torch.randint(0, 2, (1,)).item()
+        if freq_mask:
+            f_num = 2
+            f_max = spec.shape[0] // 8
+            f = torch.randint(0, f_max + 1, (f_num,)).tolist()
+            f0 = torch.randint(0, max(1, spec.shape[0] - max(f)), (1,)).item()
+            for fi, f_i in enumerate(f):
+                spec[f0 : f0 + f_i, :] = 0
+        time_mask = torch.randint(0, 2, (1,)).item()
+        if time_mask:
+            t_num = 2
+            t_max = spec.shape[1] // 8
+            t = torch.randint(0, t_max + 1, (t_num,)).tolist()
+            t0 = torch.randint(0, max(1, spec.shape[1] - max(t)), (1,)).item()
+            for ti, t_i in enumerate(t):
+                spec[:, t0 : t0 + t_i] = 0
+        return spec
+
     def __getitem__(self, index: int) -> tuple[torch.Tensor, int]:
         row = self.metadata.iloc[index]
         audio_path = self.audio_dir / row["filename"]
@@ -135,4 +156,6 @@ class ESC50Dataset(Dataset):
         target = int(row["target"])
 
         spectrogram = self._to_spectrogram(audio)
+        if self.spec_augment:
+            spectrogram = self._apply_spec_augment(spectrogram)
         return spectrogram, target

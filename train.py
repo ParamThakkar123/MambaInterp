@@ -42,7 +42,7 @@ class TrainConfig:
     d_state: int = 16
     d_conv: int = 4
     expand: int = 2
-    dropout: float = 0.0
+    dropout: float = 0.2
     spectrogram_patch_freq: int = 16
     spectrogram_patch_time: int = 16
     spectrogram_stride_freq: int = 16
@@ -78,6 +78,7 @@ def _build_dataloaders(cfg: TrainConfig) -> tuple[DataLoader, DataLoader]:
         folds=train_folds,
         audio_config=audio_cfg,
         random_crop=True,
+        spec_augment=True,
     )
     val_ds = ESC50Dataset(
         data_root=cfg.data_root,
@@ -138,12 +139,15 @@ def run_training(cfg: TrainConfig) -> dict[str, object]:
         lr=cfg.lr,
         weight_decay=cfg.weight_decay,
     )
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=cfg.epochs)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, T_max=cfg.epochs, eta_min=1e-6
+    )
 
     max_train_steps = cfg.max_train_steps if cfg.max_train_steps > 0 else None
     max_val_steps = cfg.max_val_steps if cfg.max_val_steps > 0 else None
 
     best_val_acc = -1.0
+    best_val_loss = float("inf")
     best_ckpt_path = output_dir / "best.pt"
     history: list[dict[str, float | int]] = []
 
@@ -264,7 +268,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--d-state", default=16, type=int)
     parser.add_argument("--d-conv", default=4, type=int)
     parser.add_argument("--expand", default=2, type=int)
-    parser.add_argument("--dropout", default=0.0, type=float)
+    parser.add_argument("--dropout", default=0.2, type=float)
     parser.add_argument("--spectrogram-patch-freq", default=16, type=int)
     parser.add_argument("--spectrogram-patch-time", default=16, type=int)
     parser.add_argument("--spectrogram-stride-freq", default=16, type=int)

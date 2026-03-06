@@ -6,10 +6,13 @@ from typing import Any
 
 import matplotlib
 import matplotlib.pyplot as plt
+
 matplotlib.use("Agg")
 
 
-def save_history_csv(history: list[dict[str, float | int]], output_path: str | Path) -> str:
+def save_history_csv(
+    history: list[dict[str, float | int]], output_path: str | Path
+) -> str:
     import csv
 
     output_path = Path(output_path)
@@ -73,9 +76,11 @@ def save_training_curves(
     ax.legend()
 
     ax = axes[0][1]
+    best_val_acc = max(val_acc)
+    best_val_acc_epoch = epochs[val_acc.index(best_val_acc)]
     ax.plot(epochs, train_acc, label="train", marker="o", linewidth=2)
     ax.plot(epochs, val_acc, label="val", marker="o", linewidth=2)
-    ax.set_title("Accuracy")
+    ax.set_title(f"Accuracy (best: {best_val_acc:.2%} @ epoch {best_val_acc_epoch})")
     ax.set_xlabel("Epoch")
     ax.set_ylabel("Accuracy")
     ax.set_ylim(0.0, 1.0)
@@ -169,7 +174,10 @@ def save_small_experiment_plots(
 
     ranked = sorted(
         (
-            (str(summary.get("model", "unknown")), float(summary.get("best_val_accuracy", 0.0)))
+            (
+                str(summary.get("model", "unknown")),
+                float(summary.get("best_val_accuracy", 0.0)),
+            )
             for summary in summaries
         ),
         key=lambda x: x[1],
@@ -184,7 +192,7 @@ def save_small_experiment_plots(
             ax.text(
                 bar.get_x() + bar.get_width() / 2,
                 bar.get_height() + 0.01,
-                f"{value:.3f}",
+                f"{value:.2%}",
                 ha="center",
                 va="bottom",
                 fontsize=9,
